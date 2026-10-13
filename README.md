@@ -20,13 +20,26 @@ See [Prometheus scrape example](#prometheus-scrape-example) for setup.
 | Tags | `wekahome`, `weka`, `exporter-v2` |
 | Default range / refresh | last 6h / 1m |
 
+## Screenshots
+
+**Cluster Info**: status, capacity, throughput/IOPS, protection, alerts, latency percentiles, IO distribution
+
+![Cluster Info row](images/cluster-info.png)
+
+**Row overview and Tenants**: template variables, collapsed rows, tenant throughput/IOPS/latency/QoS delay
+
+![Rows and Tenants](images/rows-tenants.png)
+
 ## Repository layout
 
 ```
 .
 ├── README.md
-└── dashboards/
-    └── weka-lwh-exporter-v2.json   # Grafana dashboard JSON model
+├── dashboards/
+│   └── weka-lwh-exporter-v2.json   # Grafana dashboard JSON model
+└── images/                         # README screenshots
+    ├── cluster-info.png
+    └── rows-tenants.png
 ```
 
 ## Template variables
