@@ -322,19 +322,3 @@ Collections are predefined metric groups that can be used for [selective metric 
 | `weka_qd_write_ops_per_second` | gauge | `inode`, `qd_name`, `fs_name`, `path` | qd | _(no description in the 5.0.2 YAML)_ | ✅ |
 
 </details>
-
-## Notes
-
-- **Inactive Drives** — active drives emit no series; any value above 0 is a failed or removed drive.
-- **Protection Status** — `num_failures=0` below 100% means data at risk.
-- **Top 5 Choking / TXQ Full Servers** — top-N membership changes between scrapes, so lines look broken; this is expected.
-- **OBS Active Buckets** — only emitted for tiered clusters; shows 0 otherwise.
-- **Snapshots** panels subtract 1 from `weka_filesystem_snapshot_count` per filesystem.
-- **Top 10 Clients by CPU Utilization** filters on `server=~"$client"` rather than `server_name`; adjust if the label doesn't exist in your environment.
-
-## Contributing
-
-1. Edit the dashboard in Grafana.
-2. **Share → Export → Export as JSON** (leave "Export for sharing externally" off to keep the datasource UID).
-3. Replace `dashboards/weka-lwh-exporter-v2.json`, bump nothing manually — Grafana manages `version`.
-4. Commit with a message describing the panel/query changes.
