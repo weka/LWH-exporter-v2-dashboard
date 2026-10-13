@@ -1,0 +1,830 @@
+# WEKA LWH Prometheus Exporter v2 — Metric Reference
+# Source: LWH 5.0.2, Prometheus Exporter tab -> Metric Reference -> Download YAML
+metrics:
+categories:
+    - name: cluster
+      endpoint: /
+    - name: container
+      endpoint: /
+    - name: drive
+      endpoint: /drives
+    - name: filesystem
+      endpoint: /clients
+    - name: obs
+      endpoint: /
+    - name: posix_client
+      endpoint: /clients
+    - name: process
+      endpoint: /
+    - name: qd
+      endpoint: /quota_domains
+    - name: s3
+      endpoint: /
+    - name: server_network
+      endpoint: /
+    - name: tenant
+      endpoint: /
+collections:
+    - name: cluster_health
+      endpoint: /
+      metrics:
+        - weka_cluster_status
+        - weka_cluster_alerts_count
+        - weka_cluster_drives_count
+        - weka_cluster_container_count
+        - weka_cluster_protection_level_percent
+        - weka_cluster_io_status
+    - name: cluster_inventory
+      endpoint: /
+      metrics:
+        - weka_cluster_capacity_bytes
+        - weka_cluster_license_status
+        - weka_cluster_link_type
+        - weka_obs_buckets_count
+    - name: cluster_performance
+      endpoint: /
+      metrics:
+        - weka_cluster_read_bytes_per_second
+        - weka_cluster_write_bytes_per_second
+        - weka_cluster_read_ops_per_second
+        - weka_cluster_write_ops_per_second
+        - weka_cluster_metadata_ops_per_second
+        - weka_cluster_metadata_latency_seconds_avg
+        - weka_cluster_read_latency_seconds_avg
+        - weka_cluster_write_latency_seconds_avg
+        - weka_cluster_read_duration_seconds
+        - weka_cluster_write_duration_seconds
+        - weka_cluster_api_requests_per_second
+        - weka_cluster_choking_level_per_second
+        - weka_cluster_choking_level_top_servers
+        - weka_cpu_utilization_percent
+endpoints:
+    - path: /
+      metrics:
+        - name: weka_cluster_alerts_count
+          type: gauge
+          labels:
+            - severity
+          category: cluster
+          collections:
+            - cluster_health
+          description: Number of currently active (non-muted) alerts by severity. Emits all 5 severities including zeros.
+        - name: weka_cluster_api_requests_per_second
+          type: gauge
+          labels:
+            - http_code_group
+          category: cluster
+          collections:
+            - cluster_performance
+          description: Weka management API request rate by HTTP response code group, cluster-wide. Value is already a rate — use directly without rate().
+        - name: weka_cluster_capacity_bytes
+          type: gauge
+          labels:
+            - capacity_type
+          category: cluster
+          collections:
+            - cluster_inventory
+          description: Cluster storage capacity in bytes by capacity type.
+        - name: weka_cluster_choking_level_per_second
+          type: gauge
+          category: cluster
+          collections:
+            - cluster_performance
+          description: Rate of IO throttling events on CLIENT processes, cluster-wide. Value is already a rate.
+        - name: weka_cluster_choking_level_top_servers
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+          category: cluster
+          collections:
+            - cluster_performance
+          description: IO throttling event rate for the top 5 CLIENT servers by choking level. This query scans the full choking.choking_level_all stat (~5.6M series at scale).
+        - name: weka_cluster_container_count
+          type: gauge
+          labels:
+            - mode
+            - status
+          category: cluster
+          collections:
+            - cluster_health
+          description: Count of Weka containers by mode. role is omitted — a container can hold processes of multiple roles making role-based counts ambiguous. Use weka_container_process_count for role breakdown.
+        - name: weka_cluster_drives_count
+          type: gauge
+          labels:
+            - status
+          category: cluster
+          collections:
+            - cluster_health
+          description: Count of cluster drives by provisioning status (active or total).
+        - name: weka_cluster_io_status
+          type: gauge
+          labels:
+            - status
+          category: cluster
+          collections:
+            - cluster_health
+          description: Weka cluster I/O status. Value is always 1; the current status is carried in the status label.
+        - name: weka_cluster_license_status
+          type: gauge
+          labels:
+            - status
+          category: cluster
+          collections:
+            - cluster_inventory
+          description: Weka cluster license status. Value is always 1; the current status is carried in the status label.
+        - name: weka_cluster_link_type
+          type: gauge
+          labels:
+            - link_type
+          category: cluster
+          collections:
+            - cluster_inventory
+          description: Weka cluster data-plane link layer type. Value is always 1; ETH=Ethernet, IB=InfiniBand.
+        - name: weka_cluster_metadata_latency_seconds_avg
+          type: gauge
+          labels:
+            - op_type
+          category: cluster
+          collections:
+            - cluster_performance
+          description: Average metadata latency in seconds per op type at the POSIX Driver layer, cluster-wide. Value is already an average.
+        - name: weka_cluster_metadata_ops_per_second
+          type: gauge
+          labels:
+            - op_type
+          category: cluster
+          collections:
+            - cluster_performance
+          description: Metadata operation rate per op type at the POSIX Driver layer, cluster-wide. Value is already a rate.
+        - name: weka_cluster_protection_level_percent
+          type: gauge
+          labels:
+            - num_failures
+          category: cluster
+          collections:
+            - cluster_health
+          description: Percentage of cluster data at each protection level. num_failures=0 means data is fully protected; higher values indicate data at risk. Always emits all observed protection levels including zero-percent entries.
+        - name: weka_cluster_read_bytes_per_second
+          type: gauge
+          category: cluster
+          collections:
+            - cluster_performance
+          description: Read throughput in bytes/sec at the POSIX Driver layer, cluster-wide. Counts all protocols. Value is already a rate.
+        - name: weka_cluster_read_duration_seconds
+          type: untyped
+          labels:
+            - le
+          category: cluster
+          collections:
+            - cluster_performance
+          description: Read operation duration histogram, cluster-wide, all protocols. le label is in seconds (converted from microseconds).
+        - name: weka_cluster_read_latency_seconds_avg
+          type: gauge
+          category: cluster
+          collections:
+            - cluster_performance
+          description: Average read latency in seconds at the POSIX Driver layer, cluster-wide.
+        - name: weka_cluster_read_ops_per_second
+          type: gauge
+          category: cluster
+          collections:
+            - cluster_performance
+          description: Read IOPS at the POSIX Driver layer, cluster-wide. Value is already a rate.
+        - name: weka_cluster_read_qos_delay_seconds_avg
+          type: gauge
+          category: cluster
+          description: Average QoS throttle delay in seconds for read operations, cluster-wide across all processes. Value is already an average — use directly without rate(). Subtract from weka_cluster_read_latency_seconds_avg for latency without QoS contribution.
+        - name: weka_cluster_status
+          type: gauge
+          labels:
+            - status
+          category: cluster
+          collections:
+            - cluster_health
+          description: 1 if the cluster is in an operational state (OK/REBUILDING/REDISTRIBUTING), 0 otherwise. A single series is emitted; the status label carries the current cluster status.
+        - name: weka_cluster_txq_full_per_second
+          type: gauge
+          category: cluster
+          description: Cluster-wide TX queue full events per second across all ports.
+        - name: weka_cluster_txq_full_top_servers
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - process_id
+          category: cluster
+          description: TX queue full rate for the top 5 servers/processes (snapshot ranking per scrape cycle). Labels identify the offending server/container/process.
+        - name: weka_cluster_write_bytes_per_second
+          type: gauge
+          category: cluster
+          collections:
+            - cluster_performance
+          description: Write throughput in bytes/sec at the POSIX Driver layer, cluster-wide. Counts all protocols. Value is already a rate.
+        - name: weka_cluster_write_duration_seconds
+          type: untyped
+          labels:
+            - le
+          category: cluster
+          collections:
+            - cluster_performance
+          description: Write operation duration histogram, cluster-wide, all protocols. le label is in seconds (converted from microseconds).
+        - name: weka_cluster_write_latency_seconds_avg
+          type: gauge
+          category: cluster
+          collections:
+            - cluster_performance
+          description: Average write latency in seconds at the POSIX Driver layer, cluster-wide.
+        - name: weka_cluster_write_ops_per_second
+          type: gauge
+          category: cluster
+          collections:
+            - cluster_performance
+          description: Write IOPS at the POSIX Driver layer, cluster-wide. Value is already a rate.
+        - name: weka_cluster_write_qos_delay_seconds_avg
+          type: gauge
+          category: cluster
+          description: Average QoS throttle delay in seconds for write operations, cluster-wide across all processes. Value is already an average — use directly without rate(). Subtract from weka_cluster_write_latency_seconds_avg for latency without QoS contribution.
+        - name: weka_container_pending_ios_per_second
+          type: gauge
+          labels:
+            - server_name
+            - container_name
+            - container_id
+            - mode
+            - role
+          category: container
+          description: Rate of pending I/O operations per second per container. Value is already a rate — use directly in dashboards without rate().
+        - name: weka_container_process_count
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - mode
+            - role
+            - status
+          category: container
+          description: Number of Weka processes per server container, by role, mode, and status.
+        - name: weka_obs_buckets_count
+          type: gauge
+          labels:
+            - status
+          category: obs
+          collections:
+            - cluster_inventory
+          description: Number of object store buckets. Only emitted if cluster has tiered filesystems.
+        - name: weka_cpu_utilization_percent
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - mode
+            - role
+            - process_id
+          category: process
+          collections:
+            - cluster_performance
+          description: Per-process CPU utilization as a percentage (0..100). Derived from the Weka reactor's idle vs. cycles_per_second counters; value is already averaged over the rate window — use directly without rate().
+        - name: weka_s3_api_failures
+          type: gauge
+          labels:
+            - api
+          category: s3
+          description: S3 API failure count per API type, cluster-wide (server-side 5xx + handler errors).
+        - name: weka_s3_api_ops
+          type: gauge
+          labels:
+            - api
+          category: s3
+          description: S3 API operations per API type, cluster-wide (per-interval gauge — do not apply rate()).
+        - name: weka_s3_api_ttfb_seconds
+          type: gauge
+          labels:
+            - api
+          category: s3
+          description: S3 server-side time-to-first-byte per API type, cluster-wide, in seconds.
+        - name: weka_s3_api_ttlb_seconds
+          type: gauge
+          labels:
+            - api
+          category: s3
+          description: S3 server-side time-to-last-byte per API type, cluster-wide, in seconds.
+        - name: weka_s3_bucket_ops_per_second
+          type: gauge
+          labels:
+            - op_type
+          category: s3
+          description: S3 bucket management operation rate per operation type, cluster-wide. op_type={create|list|delete}. Value is already a rate.
+        - name: weka_s3_buckets_count
+          type: gauge
+          category: s3
+          description: Total number of S3 protocol buckets on the cluster. Distinct from weka_obs_buckets_count.
+        - name: weka_s3_fs_read_bytes
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+          category: s3
+          description: S3 read bytes per filesystem, cluster-wide (per-interval gauge).
+        - name: weka_s3_fs_requests
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+            - api
+          category: s3
+          description: S3 API requests per filesystem and API type, cluster-wide (per-interval gauge).
+        - name: weka_s3_fs_status
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+            - code
+          category: s3
+          description: S3 HTTP response status count per filesystem and code class, cluster-wide (per-interval gauge). code={2xx|3xx|4xx|5xx}.
+        - name: weka_s3_fs_write_bytes
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+          category: s3
+          description: S3 write bytes per filesystem, cluster-wide (per-interval gauge).
+        - name: weka_s3_lifecycle_bucket_ops_per_second
+          type: gauge
+          labels:
+            - op_type
+            - bucketname
+          category: s3
+          description: S3 lifecycle task file operation rate per operation type and S3 bucket, cluster-wide. Value is already a rate — use directly in dashboards without rate().
+        - name: weka_s3_lifecycle_ops_per_second
+          type: gauge
+          labels:
+            - op_type
+            - shard
+          category: s3
+          description: S3 lifecycle task file operation rate per action type, cluster-wide. Shard granularity. op_type={processed|deleted}.
+        - name: weka_s3_slb_active_connections
+          type: gauge
+          category: s3
+          description: Active S3 load-balancer downstream connections, cluster-wide.
+        - name: weka_s3_slb_requests_per_second
+          type: gauge
+          labels:
+            - http_code_group
+          category: s3
+          description: S3 load-balancer request rate per HTTP response code group, cluster-wide. Value is already a rate.
+        - name: weka_s3_slb_rx_resets_per_second
+          type: gauge
+          category: s3
+          description: Rate of S3 load-balancer TCP connection resets received, cluster-wide. Value is already a rate.
+        - name: weka_s3_slb_tx_resets_per_second
+          type: gauge
+          category: s3
+          description: Rate of S3 load-balancer TCP connection resets sent, cluster-wide. Value is already a rate.
+        - name: weka_s3_ttlb_seconds
+          type: untyped
+          labels:
+            - le
+          category: s3
+          description: S3 time-to-last-byte duration histogram, cluster-wide. le labels in seconds (converted from milliseconds). Values are windowed; do not apply rate(). For per-API average TTLB use weka_s3_api_ttlb_seconds.
+        - name: weka_server_network_receive_bytes_per_second
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - mode
+          category: server_network
+          description: Per-server network receive throughput in bytes/sec, summed across all ports.
+        - name: weka_server_network_receive_errors_per_second
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - mode
+            - error_type
+          category: server_network
+          description: Per-server network receive errors by error type (errors, missed, no_mbufs).
+        - name: weka_server_network_transmit_bytes_per_second
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - mode
+          category: server_network
+          description: Per-server network transmit throughput in bytes/sec, summed across all ports.
+        - name: weka_server_network_transmit_errors_per_second
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - mode
+          category: server_network
+          description: Per-server network transmit errors per second.
+        - name: weka_tenant_read_bytes_per_second
+          type: gauge
+          labels:
+            - tenant
+            - tenant_name
+          category: tenant
+          description: Read throughput in bytes/sec at the POSIX Driver layer, per tenant. Counts all protocols. Value is already a rate.
+        - name: weka_tenant_read_latency_no_qos_seconds_avg
+          type: gauge
+          labels:
+            - tenant
+            - tenant_name
+          category: tenant
+          description: Average read latency excluding QoS throttle delay, in seconds, per tenant. Pure storage latency, with throttle time removed.
+        - name: weka_tenant_read_latency_seconds_avg
+          type: gauge
+          labels:
+            - tenant
+            - tenant_name
+          category: tenant
+          description: Average read latency in seconds at the POSIX Driver layer, per tenant.
+        - name: weka_tenant_read_ops_per_second
+          type: gauge
+          labels:
+            - tenant
+            - tenant_name
+          category: tenant
+          description: Read IOPS at the POSIX Driver layer, per tenant. Value is already a rate.
+        - name: weka_tenant_read_qos_delay_seconds_avg
+          type: gauge
+          labels:
+            - tenant
+            - tenant_name
+          category: tenant
+          description: Average QoS throttle delay in seconds for read operations, per tenant. Value is already an average — use directly without rate(). A non-zero value means the tenant's reads are being throttled by QoS limits.
+        - name: weka_tenant_write_bytes_per_second
+          type: gauge
+          labels:
+            - tenant
+            - tenant_name
+          category: tenant
+          description: Write throughput in bytes/sec at the POSIX Driver layer, per tenant. Counts all protocols. Value is already a rate.
+        - name: weka_tenant_write_latency_no_qos_seconds_avg
+          type: gauge
+          labels:
+            - tenant
+            - tenant_name
+          category: tenant
+          description: Average write latency excluding QoS throttle delay, in seconds, per tenant. Pure storage latency, with throttle time removed.
+        - name: weka_tenant_write_latency_seconds_avg
+          type: gauge
+          labels:
+            - tenant
+            - tenant_name
+          category: tenant
+          description: Average write latency in seconds at the POSIX Driver layer, per tenant.
+        - name: weka_tenant_write_ops_per_second
+          type: gauge
+          labels:
+            - tenant
+            - tenant_name
+          category: tenant
+          description: Write IOPS at the POSIX Driver layer, per tenant. Value is already a rate.
+        - name: weka_tenant_write_qos_delay_seconds_avg
+          type: gauge
+          labels:
+            - tenant
+            - tenant_name
+          category: tenant
+          description: Average QoS throttle delay in seconds for write operations, per tenant. Value is already an average — use directly without rate(). A non-zero value means the tenant's writes are being throttled by QoS limits.
+    - path: /clients
+      metrics:
+        - name: weka_filesystem_capacity_bytes
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+            - capacity_type
+          category: filesystem
+          description: Per-filesystem capacity in bytes, broken out by capacity type.
+        - name: weka_filesystem_data_reduction_ratio
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+          category: filesystem
+          description: Per-filesystem data reduction ratio (uncompressed bytes / compressed bytes stored on SSD). 1.0 means no reduction.
+        - name: weka_filesystem_read_bytes_per_second
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+          category: filesystem
+          description: Per-filesystem read throughput in bytes/sec. Value is already a rate.
+        - name: weka_filesystem_read_latency_seconds_avg
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+          category: filesystem
+          description: Per-filesystem average read latency in seconds.
+        - name: weka_filesystem_read_ops_per_second
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+          category: filesystem
+          description: Per-filesystem read IOPS. Value is already a rate.
+        - name: weka_filesystem_snapshot_count
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+          category: filesystem
+          description: Number of snapshots per filesystem.
+        - name: weka_filesystem_write_bytes_per_second
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+          category: filesystem
+          description: Per-filesystem write throughput in bytes/sec. Value is already a rate.
+        - name: weka_filesystem_write_latency_seconds_avg
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+          category: filesystem
+          description: Per-filesystem average write latency in seconds.
+        - name: weka_filesystem_write_ops_per_second
+          type: gauge
+          labels:
+            - fs_name
+            - fs_id
+          category: filesystem
+          description: Per-filesystem write IOPS. Value is already a rate.
+        - name: weka_posix_client_metadata_latency_seconds_avg
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - op_type
+          category: posix_client
+          description: Per-POSIX-client average metadata-op latency in seconds, by op_type.
+        - name: weka_posix_client_metadata_ops_per_second
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - op_type
+          category: posix_client
+          description: Metadata operation rate per op_type, per POSIX client. Value is already a rate.
+        - name: weka_posix_client_read_bytes_per_second
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+          category: posix_client
+          description: Per-POSIX-client read throughput in bytes/sec.
+        - name: weka_posix_client_read_duration_seconds
+          type: untyped
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - le
+          category: posix_client
+          description: Read operation duration histogram per POSIX client. le in seconds. Do not apply rate() before histogram_quantile().
+        - name: weka_posix_client_read_latency_no_qos_seconds_avg
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+          category: posix_client
+          description: Per-POSIX-client average read latency excluding QoS-induced delay, in seconds.
+        - name: weka_posix_client_read_latency_seconds_avg
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+          category: posix_client
+          description: Per-POSIX-client average read latency in seconds.
+        - name: weka_posix_client_read_ops_per_second
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+          category: posix_client
+          description: Per-POSIX-client read IOPS.
+        - name: weka_posix_client_read_qos_delay_seconds_avg
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+          category: posix_client
+          description: Per-POSIX-client average QoS throttle delay applied to read ops, in seconds.
+        - name: weka_posix_client_read_size_bytes
+          type: untyped
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - le
+          category: posix_client
+          description: Read operation size distribution per POSIX client (le in bytes).
+        - name: weka_posix_client_write_bytes_per_second
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+          category: posix_client
+          description: Per-POSIX-client write throughput in bytes/sec.
+        - name: weka_posix_client_write_duration_seconds
+          type: untyped
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - le
+          category: posix_client
+          description: Write operation duration histogram per POSIX client. le in seconds. Do not apply rate() before histogram_quantile().
+        - name: weka_posix_client_write_latency_no_qos_seconds_avg
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+          category: posix_client
+          description: Per-POSIX-client average write latency excluding QoS-induced delay, in seconds.
+        - name: weka_posix_client_write_latency_seconds_avg
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+          category: posix_client
+          description: Per-POSIX-client average write latency in seconds.
+        - name: weka_posix_client_write_ops_per_second
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+          category: posix_client
+          description: Per-POSIX-client write IOPS.
+        - name: weka_posix_client_write_qos_delay_seconds_avg
+          type: gauge
+          labels:
+            - server_name
+            - container_id
+            - container_name
+          category: posix_client
+          description: Per-POSIX-client average QoS throttle delay applied to write ops, in seconds.
+        - name: weka_posix_client_write_size_bytes
+          type: untyped
+          labels:
+            - server_name
+            - container_id
+            - container_name
+            - le
+          category: posix_client
+          description: Write operation size distribution per POSIX client (le in bytes).
+    - path: /drives
+      metrics:
+        - name: weka_drive_inactive
+          type: gauge
+          labels:
+            - server_name
+            - disk_id
+            - serial
+            - model
+            - target_state
+          category: drive
+          description: 1 for each inactive drive. Active drives emit no series. Alert on any series existing.
+        - name: weka_drive_read_bytes_per_second
+          type: gauge
+          labels:
+            - server_name
+            - disk
+          category: drive
+          description: Read throughput in bytes/sec, per drive per server. Value is already a rate.
+        - name: weka_drive_read_latency_seconds_avg
+          type: gauge
+          labels:
+            - server_name
+            - disk
+          category: drive
+          description: Per-drive average read latency in seconds.
+        - name: weka_drive_read_ops_per_second
+          type: gauge
+          labels:
+            - server_name
+            - disk
+          category: drive
+          description: Per-drive read IOPS.
+        - name: weka_drive_smart_composite_temp_celsius
+          type: gauge
+          labels:
+            - server_name
+            - disk
+          category: drive
+          description: NVMe SMART composite temperature per drive per server, in Celsius.
+        - name: weka_drive_smart_critical_warnings
+          type: gauge
+          labels:
+            - server_name
+            - disk
+          category: drive
+          description: NVMe SMART critical warning indicator, per drive per server. Non-zero indicates a SMART warning condition.
+        - name: weka_drive_smart_media_errors
+          type: gauge
+          labels:
+            - server_name
+            - disk
+          category: drive
+          description: NVMe SMART media error count, per drive per server.
+        - name: weka_drive_write_bytes_per_second
+          type: gauge
+          labels:
+            - server_name
+            - disk
+          category: drive
+          description: Write throughput in bytes/sec, per drive per server. Value is already a rate.
+        - name: weka_drive_write_latency_seconds_avg
+          type: gauge
+          labels:
+            - server_name
+            - disk
+          category: drive
+          description: Per-drive average write latency in seconds.
+        - name: weka_drive_write_ops_per_second
+          type: gauge
+          labels:
+            - server_name
+            - disk
+          category: drive
+          description: Per-drive write IOPS.
+    - path: /quota_domains
+      metrics:
+        - name: weka_qd_read_bytes_per_second
+          type: gauge
+          labels:
+            - inode
+            - qd_name
+            - fs_name
+            - path
+          category: qd
+          description: Quota domain read throughput in bytes/sec. Value is already a rate.
+        - name: weka_qd_read_latency_seconds_avg
+          type: gauge
+          labels:
+            - inode
+            - qd_name
+            - fs_name
+            - path
+          category: qd
+          description: Quota domain average read latency in seconds.
+        - name: weka_qd_read_ops_per_second
+          type: gauge
+          labels:
+            - inode
+            - qd_name
+            - fs_name
+            - path
+          category: qd
+          description: Quota domain read IOPS. Value is already a rate.
+        - name: weka_qd_write_bytes_per_second
+          type: gauge
+          labels:
+            - inode
+            - qd_name
+            - fs_name
+            - path
+          category: qd
+          description: Quota domain write throughput in bytes/sec. Value is already a rate.
+        - name: weka_qd_write_latency_seconds_avg
+          type: gauge
+          labels:
+            - inode
+            - qd_name
+            - fs_name
+            - path
+          category: qd
+          description: Quota domain average write latency in seconds.
+        - name: weka_qd_write_ops_per_second
+          type: gauge
+          labels:
+            - inode
+            - qd_name
+            - fs_name
+            - path
+          category: qd
