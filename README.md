@@ -42,23 +42,6 @@ See [Prometheus scrape example](#prometheus-scrape-example) for setup.
     └── rows-tenants.png
 ```
 
-## Query conventions
-
-The v2 exporter differs from v1 in two ways that every panel relies on:
-
-1. **Metrics are already rates or averages.** `*_per_second`, `*_seconds_avg` and histogram buckets are pre-computed over the exporter's window. Use them directly — **never wrap them in `rate()`** (including before `histogram_quantile()`).
-2. **Duplicate scrapes are collapsed.** Every query is wrapped in `max by (<identity labels>)` so that multiple LWH scrapers emitting the same series don't double-count. Aggregation (`sum`/`avg`) happens *after* the `max by`.
-
-Example:
-
-```promql
-sum by (server_name) (
-  max by (server_name, container_id, container_name) (
-    weka_posix_client_read_bytes_per_second{cluster_name=~"$cluster", server_name=~"$client"}
-  )
-)
-```
-
 ## Template variables
 
 | Variable | Source | Used by |
@@ -99,30 +82,6 @@ All variables are multi-select with an `All` (`.*`) option.
 > ```bash
 > sed -i 's/ffyvyko3uo6bkd/<your-datasource-uid>/g' dashboards/weka-lwh-exporter-v2.json
 > ```
-
-### Provisioning
-
-```yaml
-# /etc/grafana/provisioning/dashboards/weka.yaml
-apiVersion: 1
-providers:
-  - name: weka
-    folder: WEKA
-    type: file
-    options:
-      path: /var/lib/grafana/dashboards/weka
-```
-
-Copy `dashboards/weka-lwh-exporter-v2.json` into the configured path. When provisioning, consider removing the top-level `"id"` field so Grafana assigns one.
-
-### HTTP API
-
-```bash
-jq '{dashboard: (. | del(.id)), overwrite: true}' dashboards/weka-lwh-exporter-v2.json \
-  | curl -sS -X POST -H "Authorization: Bearer $GRAFANA_TOKEN" \
-         -H "Content-Type: application/json" \
-         --data @- "$GRAFANA_URL/api/dashboards/db"
-```
 
 ## Prometheus scrape example
 
